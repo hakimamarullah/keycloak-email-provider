@@ -1,0 +1,55 @@
+name: "keycloak-email-provider"
+
+services:
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: keycloak-email-provider
+    env_file:
+      - .env
+    environment:
+      # ── Keycloak admin credentials ──────────────────────────────────
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+
+      # ── Artemis provider configuration ──────────────────────────────
+      WEBHOOK_ARTEMIS_URL: tcp://host.docker.internal:61616
+      WEBHOOK_ARTEMIS_USERNAME: ${WEBHOOK_ARTEMIS_USERNAME}
+      WEBHOOK_ARTEMIS_PASSWORD: ${WEBHOOK_ARTEMIS_PASSWORD}
+
+
+      # Optional: restrict which events are forwarded.
+      # Comment out to forward ALL events.
+#      WEBHOOK_EVENTS_TAKEN: LOGIN,LOGIN_ERROR,LOGOUT,REGISTER,UPDATE_PASSWORD
+
+      # ── Keycloak runtime settings ────────────────────────────────────
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_LOG_LEVEL: INFO,com.starline.keycloak.email:DEBUG
+
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://host.docker.internal:5439/kc_new
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
+
+      KC_SPI_EMAIL_TEMPLATE__PROVIDER: fr-email-provider
+
+    ports:
+      - "9879:8080"
+    command: start-dev
+    volumes:
+      - ./providers:/opt/keycloak/providers:ro,z
+    networks:
+      - internal
+    restart: on-failure
+
+
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  internal:
+    driver: bridge
