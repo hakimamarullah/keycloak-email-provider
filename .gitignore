@@ -3,3 +3,4 @@
 /lib/
 /docker/providers/
 /docker/.env
+/.kiro/

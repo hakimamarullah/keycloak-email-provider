@@ -11,6 +11,9 @@ import java.util.Map;
 
 public class FREmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
 
+    public static final String EMAIL_EVENT_KIND = "EMAIL";
+    public static final String RESET_PASSWORD_EVENT_CODE = "RESET_PASSWORD";
+    public static final String VERIFY_EMAIL_EVENT_CODE = "VERIFY_EMAIL";
     private final Publisher publisher;
 
     public FREmailTemplateProvider(KeycloakSession session, Publisher publisher) {
@@ -21,12 +24,12 @@ public class FREmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
 
     @Override
     public void sendVerifyEmail(String link, long expirationInMinutes) throws EmailException {
-        dispatch("VERIFY_EMAIL", linkParams(link, expirationInMinutes));
+        dispatch(VERIFY_EMAIL_EVENT_CODE, linkParams(link, expirationInMinutes));
     }
 
     @Override
     public void sendPasswordReset(String link, long expirationInMinutes) throws EmailException {
-        dispatch("RESET_PASSWORD", linkParams(link, expirationInMinutes));
+        dispatch(RESET_PASSWORD_EVENT_CODE, linkParams(link, expirationInMinutes));
     }
 
 
@@ -42,9 +45,10 @@ public class FREmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
         params.putIfAbsent("firstName", user.getFirstName());
         params.putIfAbsent("lastName", user.getLastName());
         params.putIfAbsent("email", user.getEmail());
+        params.put("userId", user.getId());
 
         Map<String, Object> envelope = new LinkedHashMap<>();
-        envelope.put("event_code", eventCode);
+        envelope.put("eventCode", eventCode);
         envelope.put("to", user.getEmail());
         envelope.put("realm", realm.getName());
         envelope.put("locale", user.getFirstAttribute("locale"));
@@ -54,7 +58,7 @@ public class FREmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
             String json = JsonSerialization.writeValueAsString(envelope);
 
             Publisher.MessageProperties properties = new Publisher.MessageProperties(
-                    "EMAIL",
+                    EMAIL_EVENT_KIND,
                     eventCode,
                     realm.getId(),
                     realm.getName(),
