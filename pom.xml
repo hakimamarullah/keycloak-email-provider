@@ -141,15 +141,48 @@
               <!-- 🔥 CRITICAL: isolate Artemis -->
               <relocations>
 
+                <!-- Namespace is provider-specific so this JAR never shares
+                     packages with other shaded providers (e.g.
+                     keycloak-artemis-provider) on Keycloak's flat classpath. -->
                 <relocation>
                   <pattern>org.apache.activemq.artemis</pattern>
-                  <shadedPattern>com.starline.shaded.artemis</shadedPattern>
+                  <shadedPattern>com.starline.email.shaded.artemis</shadedPattern>
                 </relocation>
 
                 <!-- Netty is used internally -->
                 <relocation>
                   <pattern>io.netty</pattern>
-                  <shadedPattern>com.starline.shaded.netty</shadedPattern>
+                  <shadedPattern>com.starline.email.shaded.netty</shadedPattern>
+                </relocation>
+
+                <!-- Artemis transitive deps — relocate every bundled third-party
+                     root into this provider's namespace so nothing collides with
+                     another provider's bundled copies on Keycloak's flat
+                     classpath. Only com.starline.* (our own code) is left in
+                     place. -->
+                <relocation>
+                  <pattern>de.dentrassi.crypto.pem</pattern>
+                  <shadedPattern>com.starline.email.shaded.pem</shadedPattern>
+                </relocation>
+
+                <relocation>
+                  <pattern>org.apache.commons</pattern>
+                  <shadedPattern>com.starline.email.shaded.commons</shadedPattern>
+                </relocation>
+
+                <relocation>
+                  <pattern>com.hierynomus</pattern>
+                  <shadedPattern>com.starline.email.shaded.hierynomus</shadedPattern>
+                </relocation>
+
+                <relocation>
+                  <pattern>org.slf4j</pattern>
+                  <shadedPattern>com.starline.email.shaded.slf4j</shadedPattern>
+                </relocation>
+
+                <relocation>
+                  <pattern>jakarta.jms</pattern>
+                  <shadedPattern>com.starline.email.shaded.jakarta.jms</shadedPattern>
                 </relocation>
 
               </relocations>
