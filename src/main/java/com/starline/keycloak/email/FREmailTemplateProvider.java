@@ -2,12 +2,15 @@ package com.starline.keycloak.email;
 
 import org.keycloak.email.EmailException;
 import org.keycloak.email.freemarker.FreeMarkerEmailTemplateProvider;
+import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.util.JsonSerialization;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class FREmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
 
@@ -47,11 +50,15 @@ public class FREmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
         params.putIfAbsent("email", user.getEmail());
         params.put("userId", user.getId());
 
+        var locale = session.getContext().resolveLocale(user,
+                Boolean.parseBoolean(String.valueOf(attributes.get(Constants.IGNORE_ACCEPT_LANGUAGE_HEADER))));
         Map<String, Object> envelope = new LinkedHashMap<>();
         envelope.put("eventCode", eventCode);
         envelope.put("to", user.getEmail());
         envelope.put("realm", realm.getName());
-        envelope.put("locale", user.getFirstAttribute("locale"));
+        envelope.put("locale", Optional.ofNullable(locale)
+                .map(Locale::getLanguage)
+                .orElse(null));
         envelope.put("params", params);
 
         try {
